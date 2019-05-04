@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Daemonset
+metadata:
+  name: fluentd
+  labels:
+    app: fluentd  
+    type: cluster
+    kubernetes.io/cluster-service: "true"
+spec:
+  template: 
+    metadata:
+       labels:
+         app: fluentd  
+         type: cluster
+         kubernetes.io/cluster-service: "true"              
+    spec: 
+      containers:
+      - name: fluentd
+        image: fluent/fluentd-kubernetes-daemonset:elasticsearch
+        #env: 
+          #- name: FLUENT_ELASTICSEARCH_HOST
+            #value: <hostname>
+          #- name: FLUENT_ELASTICSEARCH_PORT
+            #value: "9200"
+          #- name: FLUENT_ELASTICSEARCH_SCHEME
+            #value: "http"                   
+        resources: 
+          limits: 
+            memory: 200Mi
+          request: 
+            cpu: 100m 
+            memory: 200Mi
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+      terminationGracePeriodSeconds: 30                          
+      volumes:
+      - name: varlog
+        hostPath: 
+          path: /var/log
+      - name: varlibdockercontainers
+        hostPath:
+            path: /var/lib/docker/containers               
+     
