@@ -1,7 +1,39 @@
 apiVersion: v1
-kind: Daemonset
+kind: ConfigMap
+metadata:
+  name: fluentd-conf
+data:
+  fluent.conf: |
+    <match fluent.**>
+      @type null
+    </match>
+    <source>
+      @type tail
+      path /var/log/containers/*.log
+      pos_file /var/log/fluentd-containers.log.pos
+      time_format %Y-%m-%dT%H:%M:%S.%NZ
+      tag kubernetes.*
+      format json
+      read_from_head true
+    </source>
+    <filter kubernetes.**>
+      @type kubernetes_metadata
+    </filter>
+    <match kubernetes.var.log.containers.**fluentd**.log>
+      @type null
+    </match>
+    <match kubernetes.var.log.containers.**kube-system**.log>
+      @type null
+    </match>
+    <match kubernetes.**>
+      @type stdout
+    </match>
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
 metadata:
   name: fluentd
+  namespace: kube-system
   labels:
     app: fluentd  
     type: cluster
@@ -16,18 +48,21 @@ spec:
     spec: 
       containers:
       - name: fluentd
-        image: fluent/fluentd-kubernetes-daemonset:elasticsearch
-        #env: 
+        #image: fluent/fluentd-kubernetes-daemonset:elasticsearch
+        image: fluent/fluentd:v0.14.10
+        env: 
           #- name: FLUENT_ELASTICSEARCH_HOST
             #value: <hostname>
           #- name: FLUENT_ELASTICSEARCH_PORT
             #value: "9200"
           #- name: FLUENT_ELASTICSEARCH_SCHEME
             #value: "http"                   
+          - name: FLUENT_UID
+            value: "0" 
         resources: 
           limits: 
             memory: 200Mi
-          request: 
+          requests: 
             cpu: 100m 
             memory: 200Mi
         volumeMounts:
