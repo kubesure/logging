@@ -47,7 +47,7 @@ spec:
       containers:
       - name: fluentd
         #image: fluent/fluentd-kubernetes-daemonset:elasticsearch
-        image: fluent/fluentd
+        image: fluent/fluentd:v1.3.2
         #image: fluent/fluentd-kubernetes-daemonset:v0.12-alpine-elasticsearch 
         env: 
           #- name: FLUENT_ELASTICSEARCH_HOST
