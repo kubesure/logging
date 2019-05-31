@@ -1,4 +1,12 @@
-### install fluentd
+### start elasticsearch and kibana
+
+```
+set virtual memory for elastic
+sudo sysctl -w vm.max_map_count=262144
+
+```
+
+### install fluentd as k8s object
 
 ```
 source <(kubectl completion bash)
