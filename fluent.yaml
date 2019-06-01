@@ -13,19 +13,33 @@ data:
       path /var/log/containers/*.log
       pos_file /var/log/fluentd-containers.log.pos
       time_format %Y-%m-%dT%H:%M:%S.%NZ
-      tag kubernetes.*
+      tag kubesure.*
       format json
       read_from_head true
     </source>
-    <match kubernetes.var.log.containers.**fluentd**.log>
+    <match kubesure.var.log.containers.**fluentd**.log>
       @type null
     </match>
-    <match kubernetes.var.log.containers.**kube-system**.log>
+    <match kubesure.var.log.containers.**kube-system**.log>
       @type null
     </match>
-    <match kubernetes.**>
-      @type stdout
+    <match kubesure.var.log.containers.**monitoring**.log>
+      @type null
     </match>
+    #<match kubesure.**>
+    # @type stdout
+   #</match>
+   <match kubernetes.**>
+     @type elasticsearch
+     host 172.31.46.92
+     port 9200
+     logstash_format false
+     index_name kubesure.${tag}
+     <buffer tag>
+       @type memory 
+       flush_thread_count 2
+     </buffer>
+   </match>
 ---
 apiVersion: extensions/v1beta1
 kind: DaemonSet
@@ -46,9 +60,8 @@ spec:
     spec: 
       containers:
       - name: fluentd
-        #image: fluent/fluentd-kubernetes-daemonset:elasticsearch
+        #image: fluent/fluentd-kubernetes-daemonset:v1.3.3-debian-elasticsearch-1.8
         image: fluent/fluentd:v1.3.2
-        #image: fluent/fluentd-kubernetes-daemonset:v0.12-alpine-elasticsearch 
         env: 
           #- name: FLUENT_ELASTICSEARCH_HOST
             #value: "172.31.46.92"
@@ -58,6 +71,8 @@ spec:
             #value: "http"                   
           - name: FLUENT_UID
             value: "0" 
+          - name: FLUENT_ELASTICSEARCH_SED_DISABLE
+            value: "true"
         resources: 
           limits: 
             memory: 200Mi
