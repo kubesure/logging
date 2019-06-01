@@ -15,7 +15,6 @@ data:
       time_format %Y-%m-%dT%H:%M:%S.%NZ
       tag kubesure.*
       format json
-      read_from_head true
     </source>
     <match kubesure.var.log.containers.**fluentd**.log>
       @type null
